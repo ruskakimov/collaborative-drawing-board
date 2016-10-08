@@ -1,0 +1,26 @@
+{
+  "name": "websocket_app",
+  "version": "1.0.0",
+  "description": "simple websocket app",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ruskakimov/websocket_app.git"
+  },
+  "keywords": [
+    "websocket"
+  ],
+  "author": "Rustem Kakimov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ruskakimov/websocket_app/issues"
+  },
+  "homepage": "https://github.com/ruskakimov/websocket_app#readme",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}
