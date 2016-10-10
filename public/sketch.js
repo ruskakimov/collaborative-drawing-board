@@ -132,6 +132,16 @@ APP.getMousePosition = function (e) {
 
 APP.eventHandler = function (e) {
   var pos = APP.getMousePosition(e);
+  switch (e.type) {
+    case 'touchstart':
+      APP.tool.mousedown(pos);
+      break;
+    case 'touchmove':
+      APP.tool.mousemove(pos);
+      break;
+    case 'touchend':
+      APP.tool.mouseup(pos);
+  }
   try {
     APP.tool[e.type](pos);
   } catch (e) {
@@ -144,3 +154,6 @@ APP.canvas.addEventListener('mousedown', APP.eventHandler);
 APP.canvas.addEventListener('mousemove', APP.eventHandler);
 APP.canvas.addEventListener('mouseup', APP.eventHandler);
 APP.canvas.addEventListener('mouseout', APP.eventHandler);
+APP.canvas.addEventListener('touchstart', APP.eventHandler);
+APP.canvas.addEventListener('touchmove', APP.eventHandler);
+APP.canvas.addEventListener('touchend', APP.eventHandler);
