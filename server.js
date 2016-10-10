@@ -6,24 +6,36 @@ app.use(express.static('public'));
 
 var io = require('socket.io')(server);
 
+var lines = [];
+
 io.sockets.on('connection',
   function (socket) {
     console.log("New client: " + socket.id);
+    socket.emit('history',
+    {
+      lines: lines
+    });
 
     socket.on('startpath', function (data) {
-        console.log("Started drawing at :" + data.x + " " + data.y);
+        socket.lineID = lines.length;
+        lines.push({
+          color: data.color,
+          width: data.width,
+          points: [data.pos]
+        });
         socket.broadcast.emit('start', data);
     });
 
-    socket.on('drawing', function (data) {
-        console.log("Received drawing at :" + data.x + " " + data.y);
-        socket.broadcast.emit('draw', data);
+    socket.on('drawing', function (pos) {
+        lines[socket.lineID].points.push(pos);
+        socket.broadcast.emit('draw', pos);
       }
     );
 
-    socket.on('endpath', function (data) {
-        console.log("Ended drawing at :" + data.x + " " + data.y);
-        socket.broadcast.emit('end', data);
+    socket.on('endpath', function (pos) {
+        lines[socket.lineID].points.push(pos);
+        console.log(lines);
+        socket.broadcast.emit('end', pos);
     });
 
     socket.on('disconnect', function () {

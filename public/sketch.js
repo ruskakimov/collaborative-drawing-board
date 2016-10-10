@@ -1,50 +1,78 @@
 APP = {};
-APP.canvas = document.getElementById('board');
-APP.ctx = APP.canvas.getContext('2d');
 
 APP.setup = function () {
+  APP.canvas = document.getElementById('board');
+  APP.ctx = APP.canvas.getContext('2d');
   APP.canvas.width = 500;
   APP.canvas.height = 500;
-  APP.tool = new Pencil();
+  APP.tool = new Pencil(true);
+  APP.shadowTool = new Pencil(false);
   APP.socket = io.connect('http://localhost:8080');
+  APP.lines = [];
+
+  APP.socket.on('history', function (data) {
+    console.log("Received history: " + data);
+    APP.lines = data.lines;
+    APP.shadowTool.draw();
+  });
 
   APP.socket.on('start', function (data) {
-    console.log("Started path at: " + data.x + " " + data.y);
-    APP.tool.mousedown(data, false);
+    console.log("Started path at: " + data.pos.x + " " + data.pos.y);
+    APP.shadowTool.color = data.color;
+    APP.shadowTool.width = data.width;
+    APP.shadowTool.mousedown(data.pos);
   });
 
-  APP.socket.on('draw', function (data) {
-    console.log("Drawing at: " + data.x + " " + data.y);
-    APP.tool.mousemove(data, false);
+  APP.socket.on('draw', function (pos) {
+    console.log("Drawing at: " + pos.x + " " + pos.y);
+    APP.shadowTool.mousemove(pos);
   });
 
-  APP.socket.on('end', function (data) {
-    console.log("Ended path at: " + data.x + " " + data.y);
-    APP.tool.mouseup(data, false);
+  APP.socket.on('end', function (pos) {
+    console.log("Ended path at: " + pos.x + " " + pos.y);
+    APP.shadowTool.mouseup(pos);
   });
 }
 
-function Pencil (e) {
+function Pencil (client) {
   this.drawing = false;
-  this.clientColor = "#55F";
-  this.secondColor = "#F55";
+  this.color = "#55F";
   this.width = 5;
   APP.ctx.lineCap = 'round';
   APP.ctx.lineJoin = 'round';
+  this.client = client;
 
-  this.mousedown = function (pos, client) {
-    this.drawing = true;
-    if (client) {
-      APP.ctx.strokeStyle = this.clientColor;
-      APP.socket.emit('startpath', pos);
-    } else {
-      APP.ctx.strokeStyle = this.secondColor;
+  this.draw = function () {
+    var lines, points;
+    lines = APP.lines;
+    for (var i = 0; i < lines.length; i++) {
+      points = lines[i].points;
+      APP.ctx.strokeStyle = lines[i].color;
+      APP.ctx.lineWidth = lines[i].width;
+      APP.ctx.beginPath();
+      APP.ctx.moveTo(points[0].x, points[0].y);
+      for (var j = 1; j < points.length; j++) {
+        APP.ctx.lineTo(points[j].x, points[j].y);
+      }
+      APP.ctx.stroke();
     }
+  };
+
+  this.mousedown = function (pos) {
+    this.drawing = true;
+    APP.ctx.strokeStyle = this.color;
     APP.ctx.lineWidth = this.width;
     APP.ctx.beginPath();
     APP.ctx.moveTo(pos.x, pos.y)
+    if (client) {
+      APP.socket.emit('startpath', {
+        color: this.color,
+        width: this.width,
+        pos: pos
+      });
+    }
   };
-  this.mousemove = function (pos, client) {
+  this.mousemove = function (pos) {
     if (this.drawing) {
       APP.ctx.lineTo(pos.x, pos.y);
       APP.ctx.stroke();
@@ -53,7 +81,7 @@ function Pencil (e) {
       }
     }
   };
-  this.mouseup = function (pos, client) {
+  this.mouseup = function (pos) {
     if (this.drawing) {
       this.drawing = false;
       if (client) {
@@ -61,7 +89,7 @@ function Pencil (e) {
       }
     }
   };
-  this.mouseout = function (pos, client) {
+  this.mouseout = function (pos) {
     if (this.drawing) {
       this.drawing = false;
       if (client) {
@@ -82,7 +110,7 @@ APP.getMousePosition = function (canvas, e) {
 APP.eventHandler = function (e) {
   var pos = APP.getMousePosition(this.canvas, e);
   try {
-    APP.tool[e.type](pos, true);
+    APP.tool[e.type](pos);
   } catch (e) {
     console.log(e);
   }
