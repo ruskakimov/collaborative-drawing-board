@@ -1,7 +1,7 @@
 var express = require('express');
 
 var app = express();
-var server = app.listen(8080);
+var server = app.listen(process.env.PORT || 8080);
 app.use(express.static('public'));
 
 var io = require('socket.io')(server);
@@ -30,7 +30,6 @@ io.sockets.on('connection',
 
     socket.on('endpath', function (pos) {
         lines[socket.lineID].points.push(pos);
-        console.log(lines);
         socket.broadcast.emit('end', pos);
     });
 

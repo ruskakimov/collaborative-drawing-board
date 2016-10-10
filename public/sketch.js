@@ -7,7 +7,7 @@ APP.setup = function () {
   APP.canvas.height = 500;
   APP.tool = new Pencil(true);
   APP.shadowTool = new Pencil(false);
-  APP.socket = io.connect('http://localhost:8080');
+  APP.socket = io.connect(window.location.hostname);
   APP.lines = [];
 
 //dat.gui
