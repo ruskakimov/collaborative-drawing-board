@@ -16,14 +16,10 @@ io.sockets.on('connection',
       lines: lines
     });
 
-    socket.on('startpath', function (data) {
+    socket.on('startpath', function (line) {
         socket.lineID = lines.length;
-        lines.push({
-          color: data.color,
-          width: data.width,
-          points: [data.pos]
-        });
-        socket.broadcast.emit('start', data);
+        lines.push(line);
+        socket.broadcast.emit('start', line);
     });
 
     socket.on('drawing', function (pos) {
@@ -36,6 +32,11 @@ io.sockets.on('connection',
         lines[socket.lineID].points.push(pos);
         console.log(lines);
         socket.broadcast.emit('end', pos);
+    });
+
+    socket.on('clear', function () {
+      lines = [];
+      socket.broadcast.emit('clear');
     });
 
     socket.on('disconnect', function () {

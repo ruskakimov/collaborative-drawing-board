@@ -12,8 +12,9 @@ APP.setup = function () {
 
 //dat.gui
   APP.gui = new dat.GUI();
-  APP.gui.add(APP.tool, 'width', 1, 100);
+  APP.gui.add(APP.tool, 'width', 1, 100).step(1);
   APP.gui.addColor(APP.tool, 'color');
+  APP.gui.add(APP, 'clear');
 
   APP.socket.on('history', function (data) {
     console.log("Received history: " + data);
@@ -22,10 +23,10 @@ APP.setup = function () {
   });
 
   APP.socket.on('start', function (data) {
-    console.log("Started path at: " + data.pos.x + " " + data.pos.y);
+    console.log("Started path at: " + data.points[0].x + " " + data.points[0].y);
     APP.shadowTool.color = data.color;
     APP.shadowTool.width = data.width;
-    APP.shadowTool.mousedown(data.pos);
+    APP.shadowTool.mousedown(data.points[0]);
   });
 
   APP.socket.on('draw', function (pos) {
@@ -36,6 +37,12 @@ APP.setup = function () {
   APP.socket.on('end', function (pos) {
     console.log("Ended path at: " + pos.x + " " + pos.y);
     APP.shadowTool.mouseup(pos);
+  });
+
+  APP.socket.on('clear', function () {
+    APP.lines = [];
+    APP.ctx.clearRect(0, 0, APP.canvas.width, APP.canvas.height);
+    console.log("Clear received!");
   });
 }
 
@@ -69,18 +76,22 @@ function Pencil (client) {
     APP.ctx.lineWidth = this.width;
     APP.ctx.beginPath();
     APP.ctx.moveTo(pos.x, pos.y)
+    var line = {
+      color: this.color,
+      width: this.width,
+      points: [pos]
+    };
+    this.lineId = APP.lines.length;
+    APP.lines.push(line);
     if (client) {
-      APP.socket.emit('startpath', {
-        color: this.color,
-        width: this.width,
-        pos: pos
-      });
+      APP.socket.emit('startpath', line);
     }
   };
   this.mousemove = function (pos) {
     if (this.drawing) {
-      APP.ctx.lineTo(pos.x, pos.y);
-      APP.ctx.stroke();
+      APP.lines[this.lineId].points.push(pos);
+      APP.ctx.clearRect(0, 0, APP.canvas.width, APP.canvas.height);
+      this.draw();
       if (client) {
         APP.socket.emit('drawing', pos);
       }
@@ -88,6 +99,7 @@ function Pencil (client) {
   };
   this.mouseup = function (pos) {
     if (this.drawing) {
+      APP.lines[this.lineId].points.push(pos);
       this.drawing = false;
       if (client) {
         APP.socket.emit('endpath', pos);
@@ -104,7 +116,13 @@ function Pencil (client) {
   };
 }
 
-APP.getMousePosition = function (canvas, e) {
+APP.clear = function () {
+  APP.lines = [];
+  APP.ctx.clearRect(0, 0, APP.canvas.width, APP.canvas.height);
+  APP.socket.emit('clear');
+};
+
+APP.getMousePosition = function (e) {
   var rect = this.canvas.getBoundingClientRect();
   return {
     x: e.clientX - rect.left,
@@ -113,7 +131,7 @@ APP.getMousePosition = function (canvas, e) {
 };
 
 APP.eventHandler = function (e) {
-  var pos = APP.getMousePosition(this.canvas, e);
+  var pos = APP.getMousePosition(e);
   try {
     APP.tool[e.type](pos);
   } catch (e) {
