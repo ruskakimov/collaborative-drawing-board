@@ -130,18 +130,8 @@ APP.getMousePosition = function (e) {
   };
 };
 
-APP.eventHandler = function (e) {
+APP.mouseHandler = function (e) {
   var pos = APP.getMousePosition(e);
-  switch (e.type) {
-    case 'touchstart':
-      APP.tool.mousedown(pos);
-      break;
-    case 'touchmove':
-      APP.tool.mousemove(pos);
-      break;
-    case 'touchend':
-      APP.tool.mouseup(pos);
-  }
   try {
     APP.tool[e.type](pos);
   } catch (e) {
@@ -149,11 +139,37 @@ APP.eventHandler = function (e) {
   }
 };
 
+APP.touchHandler = function (e) {
+  if (e.touches.length == 1) {
+    e.preventDefault();
+    var touch = e.targetTouches[0];
+    var pos = {
+      x: touch.pageX,
+      y: touch.pageY
+    };
+    switch (e.type) {
+      case 'touchstart':
+        APP.tool.mousedown(pos);
+        console.log('touch started');
+        break;
+      case 'touchmove':
+        APP.tool.mousemove(pos);
+        console.log('touch drag');
+        console.log(pos);
+        break;
+      case 'touchend':
+        APP.tool.mouseup(pos);
+        console.log('touch ended');
+        break;
+    }
+  }
+};
+
 APP.setup();
-APP.canvas.addEventListener('mousedown', APP.eventHandler);
-APP.canvas.addEventListener('mousemove', APP.eventHandler);
-APP.canvas.addEventListener('mouseup', APP.eventHandler);
-APP.canvas.addEventListener('mouseout', APP.eventHandler);
-APP.canvas.addEventListener('touchstart', APP.eventHandler);
-APP.canvas.addEventListener('touchmove', APP.eventHandler);
-APP.canvas.addEventListener('touchend', APP.eventHandler);
+APP.canvas.addEventListener('mousedown', APP.mouserHandler);
+APP.canvas.addEventListener('mousemove', APP.mouserHandler);
+APP.canvas.addEventListener('mouseup', APP.mouserHandler);
+APP.canvas.addEventListener('mouseout', APP.mouserHandler);
+APP.canvas.addEventListener('touchstart', APP.touchHandler);
+APP.canvas.addEventListener('touchmove', APP.touchHandler);
+APP.canvas.addEventListener('touchend', APP.touchHandler);
