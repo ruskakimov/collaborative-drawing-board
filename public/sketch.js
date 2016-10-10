@@ -10,6 +10,11 @@ APP.setup = function () {
   APP.socket = io.connect('http://localhost:8080');
   APP.lines = [];
 
+//dat.gui
+  APP.gui = new dat.GUI();
+  APP.gui.add(APP.tool, 'width', 1, 100);
+  APP.gui.addColor(APP.tool, 'color');
+
   APP.socket.on('history', function (data) {
     console.log("Received history: " + data);
     APP.lines = data.lines;
