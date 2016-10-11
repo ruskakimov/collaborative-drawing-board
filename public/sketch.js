@@ -132,7 +132,6 @@ APP.getMousePosition = function (e) {
 
 APP.mouseHandler = function (e) {
   var pos = APP.getMousePosition(e);
-  console.log("mouse!");
   try {
     APP.tool[e.type](pos);
   } catch (e) {
