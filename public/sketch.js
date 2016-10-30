@@ -150,16 +150,12 @@ APP.touchHandler = function (e) {
     switch (e.type) {
       case 'touchstart':
         APP.tool.mousedown(pos);
-        console.log('touch started');
         break;
       case 'touchmove':
         APP.tool.mousemove(pos);
-        console.log('touch drag');
-        console.log(pos);
         break;
       case 'touchend':
         APP.tool.mouseup(pos);
-        console.log('touch ended');
         break;
     }
   }
