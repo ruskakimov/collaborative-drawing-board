@@ -3,8 +3,8 @@ APP = {};
 APP.setup = function () {
   APP.canvas = document.getElementById('board');
   APP.ctx = APP.canvas.getContext('2d');
-  APP.canvas.width = 500;
-  APP.canvas.height = 500;
+  APP.canvas.width = window.innerWidth;
+  APP.canvas.height = window.innerHeight;
   APP.tool = new Pencil(true);
   APP.shadowTool = new Pencil(false);
   APP.socket = io.connect(window.location.hostname);
@@ -17,32 +17,32 @@ APP.setup = function () {
   APP.gui.add(APP, 'clear');
 
   APP.socket.on('history', function (data) {
-    console.log("Received history: " + data);
+    // console.log("Received history: " + data);
     APP.lines = data.lines;
     APP.shadowTool.draw();
   });
 
   APP.socket.on('start', function (data) {
-    console.log("Started path at: " + data.points[0].x + " " + data.points[0].y);
+    // console.log("Started path at: " + data.points[0].x + " " + data.points[0].y);
     APP.shadowTool.color = data.color;
     APP.shadowTool.width = data.width;
     APP.shadowTool.mousedown(data.points[0]);
   });
 
   APP.socket.on('draw', function (pos) {
-    console.log("Drawing at: " + pos.x + " " + pos.y);
+    // console.log("Drawing at: " + pos.x + " " + pos.y);
     APP.shadowTool.mousemove(pos);
   });
 
   APP.socket.on('end', function (pos) {
-    console.log("Ended path at: " + pos.x + " " + pos.y);
+    // console.log("Ended path at: " + pos.x + " " + pos.y);
     APP.shadowTool.mouseup(pos);
   });
 
   APP.socket.on('clear', function () {
     APP.lines = [];
     APP.ctx.clearRect(0, 0, APP.canvas.width, APP.canvas.height);
-    console.log("Clear received!");
+    // console.log("Clear received!");
   });
 }
 
