@@ -1,6 +1,4 @@
-#Websocket app
-
-##Setup
+## Setup
 ```
 npm install
 node server.js
